@@ -1,0 +1,52 @@
+diff --git a/arch_armv7.cpp b/arch_armv7.cpp
+index 4000820..06ce850 100644
+--- a/arch_armv7.cpp
++++ b/arch_armv7.cpp
+@@ -27,6 +27,11 @@ using namespace std;
+ 
+ #define HANDLE_CASE(orig, opposite) case orig: case opposite: return (candidate == orig) || (candidate == opposite)
+ 
++bool is_weird_call(const uint8_t *data)
++{
++       return memcmp((void *)data, "\x0f\xe0\xa0\xe1\x0c\xf0\xa0\xe1", 8) == 0;
++}
++
+ static bool IsRelatedCondition(Condition orig, Condition candidate)
+ {
+        switch (orig)
+@@ -1017,7 +1022,7 @@ public:
+ 
+        virtual size_t GetMaxInstructionLength() const override
+        {
+-               return 4;
++               return 8;
+        }
+ 
+        virtual bool GetInstructionInfo(const uint8_t* data, uint64_t addr, size_t maxLen, InstructionInfo& result) override
+@@ -1029,6 +1034,13 @@ public:
+                if (!Disassemble(data, addr, maxLen, instr))
+                        return false;
+ 
++               if (is_weird_call(data))
++               {
++                       LogWarn("found weird call at %lx", addr);
++                       result.length = 8;
++                       return true;
++               }
++
+                SetInstructionInfoForInstruction(addr, instr, result);
+                return true;
+        }
+@@ -1419,6 +1431,12 @@ public:
+ 
+        virtual bool GetInstructionLowLevelIL(const uint8_t* data, uint64_t addr, size_t& len, LowLevelILFunction& il) override
+        {
++               if (is_weird_call(data))
++               {
++                       LogWarn("Lifting found weird call at %lx", addr);
++                       il.AddInstruction(il.Call(il.Register(4, REG_R12)));
++                       return true;
++               }
+                Instruction instr;
+                if (!Disassemble(data, addr, len, instr))
+        }

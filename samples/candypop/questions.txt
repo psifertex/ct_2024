@@ -1,0 +1,5 @@
+1) How many functions does candypop have? // Scripting console: `bv.functions`
+2) How many functions does candypop have without running linear sweep? // Open With Options
+3) What is the sha256 sum of candypop // Triage View!
+4) Which function is the largest? // Symbol list
+5) What is the largest basic_block in the function from 5? // Scripting console, current_function.basic_blocks
